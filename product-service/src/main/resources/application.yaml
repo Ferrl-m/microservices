@@ -4,6 +4,8 @@ spring:
       uri: mongodb://localhost:27017/admin
   application:
     name: product-service
+  kafka:
+    bootstrap-servers: localhost:9092
 
 eureka:
   client:

@@ -1,17 +1,16 @@
 package com.isariev.orderservice.service;
 
-import com.isariev.orderservice.dto.InventoryResponse;
 import com.isariev.orderservice.dto.OrderLineItemsDto;
 import com.isariev.orderservice.dto.OrderRequest;
+import com.isariev.orderservice.dto.OrderResponseDto;
 import com.isariev.orderservice.model.Order;
 import com.isariev.orderservice.model.OrderLineItems;
 import com.isariev.orderservice.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.reactive.function.client.WebClient;
-
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,30 +19,27 @@ import java.util.UUID;
 @Transactional
 public class OrderService {
 
-    private final WebClient.Builder webClientBuilder;
+    private final KafkaTemplate<String, OrderResponseDto> kafkaTemplate;
     private final OrderRepository orderRepository;
 
     public void placeOrder(OrderRequest orderRequest) {
-        Order order = new Order();
-        order.setOrderNumber(UUID.randomUUID().toString());
-        List<OrderLineItems> orderLineItems = orderRequest.getOrderLineItemsDtoList()
-                .stream().map(this::mapToEntity)
-                .toList();
+        List<OrderLineItemsDto> orderLineItems = orderRequest.getOrderLineItemsDtoList();
+        List<String> skuCodes = orderLineItems.stream().map(OrderLineItemsDto::getSkuCode).toList();
 
-        order.setOrderLineItemsList(orderLineItems);
+        kafkaTemplate.send("order-topic", new OrderResponseDto(skuCodes, false, orderLineItems));
+    }
 
-        List<String> skuCodes = order.getOrderLineItemsList().stream().map(OrderLineItems::getSkuCode).toList();
-
-        InventoryResponse[] inventoryResponseArray = webClientBuilder.build().get()
-                .uri("http://inventory-service/api/inventory",
-                        uriBuilder -> uriBuilder.queryParam("skuCode", skuCodes).build())
-                .retrieve()
-                .bodyToMono(InventoryResponse[].class)
-                .block();
-
-        boolean allProductsInStock = Arrays.stream(inventoryResponseArray).allMatch(InventoryResponse::isInStock);
-
+    @KafkaListener(topics = "inventory-topic", groupId = "groupID")
+    public void consumeInventoryResponse(OrderResponseDto orderResponseDto) {
+        boolean allProductsInStock = orderResponseDto.isInStock();
         if (allProductsInStock) {
+            Order order = new Order();
+            order.setOrderNumber(UUID.randomUUID().toString());
+            List<OrderLineItems> orderLineItems = orderResponseDto.getOrderLineItems()
+                    .stream().map(this::mapToEntity)
+                    .toList();
+
+            order.setOrderLineItemsList(orderLineItems);
             orderRepository.save(order);
         } else {
             throw new IllegalArgumentException("Product is not in stock, please try again latter");

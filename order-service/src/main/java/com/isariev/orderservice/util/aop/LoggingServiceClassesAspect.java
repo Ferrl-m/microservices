@@ -42,9 +42,9 @@ public class LoggingServiceClassesAspect {
         Object[] args = joinPoint.getArgs();
         startTime = LocalDateTime.now();
         if (args.length > 0) {
-            log.debug(ANSI_BLUE + "Service: " + methodName + " - start. Args count - {}" + ANSI_RESET, args.length);
+            log.info(ANSI_BLUE + "Service: " + methodName + " - start. Args count - {}" + ANSI_RESET, args.length);
         } else {
-            log.debug(ANSI_BLUE + "Service: " + methodName + " - start." + ANSI_RESET);
+            log.info(ANSI_BLUE + "Service: " + methodName + " - start." + ANSI_RESET);
         }
     }
 
@@ -52,7 +52,7 @@ public class LoggingServiceClassesAspect {
     public void logAfter(JoinPoint joinPoint, Object returningValue) {
         String methodName = joinPoint.getSignature().toShortString();
         Object outputValue;
-        log.debug("Duration(in millis): " + Duration.between(startTime, LocalDateTime.now()).toMillis());
+        log.info("Duration(in millis): " + Duration.between(startTime, LocalDateTime.now()).toMillis());
         if (returningValue != null) {
             if (returningValue instanceof Collection) {
                 outputValue = "Collection size - " + ((Collection<?>) returningValue).size();
@@ -61,15 +61,15 @@ public class LoggingServiceClassesAspect {
             } else {
                 outputValue = returningValue;
             }
-            log.debug(ANSI_BLUE + "Service: " + methodName + " - end. Returns - {}" + ANSI_RESET, outputValue);
+            log.info(ANSI_BLUE + "Service: " + methodName + " - end. Returns - {}" + ANSI_RESET, outputValue);
         } else {
-            log.debug(ANSI_BLUE + "Service: " + methodName + " - end." + ANSI_RESET);
+            log.info(ANSI_BLUE + "Service: " + methodName + " - end." + ANSI_RESET);
         }
     }
     @AfterReturning("callAtRepo()")
     public void countSqlQueries() {
         long queryCounter = hibernateStatistics.getPrepareStatementCount();
-        log.debug(ANSI_YELLOW + "SQL queries:" + queryCounter);
+        log.info(ANSI_YELLOW + "SQL queries:" + queryCounter + ANSI_RESET);
         hibernateStatistics.clear();
     }
 
