@@ -8,12 +8,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class InventoryService {
 
     private final InventoryRepository inventoryRepository;
@@ -30,6 +32,7 @@ public class InventoryService {
                 ).toList();
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @KafkaListener(topics = "order-topic", groupId = "groupId")
     public void consumeSkuCode(OrderResponseDto orderResponseDto) {
         List<InventoryResponse> inventoryResponses = isInStock(orderResponseDto.getSkuCode());

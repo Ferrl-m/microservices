@@ -15,6 +15,12 @@ spring:
 server:
   port: 8082
 
+logging:
+  level:
+    root: INFO
+    com.isariev.orderservice: TRACE
+    org.springframework.transaction: TRACE
+
 eureka:
   client:
     service-url:

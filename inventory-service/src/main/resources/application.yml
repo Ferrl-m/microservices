@@ -16,6 +16,12 @@ spring:
 server:
   port: 0
 
+logging:
+  level:
+    root: INFO
+    com.example.inventoryservice: TRACE
+    org.springframework.transaction: TRACE
+
 eureka:
   client:
     service-url:
