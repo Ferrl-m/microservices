@@ -1,9 +1,6 @@
 package com.isariev.orderservice.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
@@ -12,6 +9,7 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class OrderResponseDto {
+    private int id;
     private List<String> skuCode;
     private boolean inStock;
     private List<OrderLineItemsDto> orderLineItems;

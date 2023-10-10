@@ -17,4 +17,9 @@ class KafkaTopicConfig {
     public NewTopic orderTopic() {
         return TopicBuilder.name("order-topic").build();
     }
+
+    @Bean
+    public NewTopic generalTopic() {
+        return TopicBuilder.name("general-topic").partitions(3).replicas((short) 1).build();
+    }
 }

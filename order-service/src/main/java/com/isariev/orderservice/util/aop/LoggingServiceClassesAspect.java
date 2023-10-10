@@ -36,6 +36,17 @@ public class LoggingServiceClassesAspect {
     public void callAtRepo() {
     }
 
+    @Pointcut("execution(public * com.isariev.orderservice.eventhandler..*.*(..))")
+    public void callAtMessage() {
+    }
+
+    @Before("callAtMessage()")
+    public void logBeforeMessage(JoinPoint joinPoint) {
+        Object[] args = joinPoint.getArgs();
+
+        log.info(ANSI_CYAN + "Kafka message to partition " + args[1] + " of topic {} - send." + ANSI_RESET, args[0]);
+    }
+
     @Before("callAtMyServicesPublicMethods()")
     public void logBefore(JoinPoint joinPoint) {
         String methodName = joinPoint.getSignature().toShortString();
